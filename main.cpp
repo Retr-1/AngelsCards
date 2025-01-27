@@ -23,6 +23,11 @@ public:
 			Card::diamond_sprites[i] = new olc::Sprite(filename);
 			Card::diamond_decals[i] = new olc::Decal(Card::diamond_sprites[i]);
 		}
+
+		red_back_sprite = new olc::Sprite("./assets/card_back_red.png");
+		red_back_decal = new olc::Decal(red_back_sprite);
+		black_back_sprite = new olc::Sprite("./assets/card_back_black.png");
+		black_back_decal = new olc::Decal(black_back_sprite);
 	}
 
 	static olc::Sprite* heart_sprites[13];
@@ -31,6 +36,11 @@ public:
 	static olc::Decal* club_decals[13];
 	static olc::Sprite* diamond_sprites[13];
 	static olc::Decal* diamond_decals[13];
+
+	static olc::Sprite* red_back_sprite;
+	static olc::Decal* red_back_decal;
+	static olc::Sprite* black_back_sprite;
+	static olc::Decal* black_back_decal;
 };
 
 olc::Sprite* Card::heart_sprites[13] = {};
@@ -39,6 +49,11 @@ olc::Sprite* Card::club_sprites[13] = {};
 olc::Decal* Card::club_decals[13] = {};
 olc::Sprite* Card::diamond_sprites[13] = {};
 olc::Decal* Card::diamond_decals[13] = {};
+
+olc::Sprite* Card::red_back_sprite = nullptr;
+olc::Decal* Card::red_back_decal = nullptr;
+olc::Sprite* Card::black_back_sprite = 0;
+olc::Decal* Card::black_back_decal = 0;
 
 
 // Override base class with your custom functionality
@@ -89,7 +104,9 @@ public:
 
 		for (int i = 0; i < 13; i++) {
 			/*DrawPartialSprite({ card_w * i, ScreenHeight() - card_h }, Card::heart_sprites[i], { 0,0 }, Card::heart_sprites[i]->Size(), scale);*/
-			DrawPartialDecal(olc::vf2d((card_w+gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::diamond_decals[i], {0,0}, (olc::vf2d)Card::diamond_sprites[i]->Size());
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::diamond_decals[i], { 0,0 }, (olc::vf2d)Card::diamond_sprites[i]->Size());
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight()/2 - card_h/2), olc::vf2d(card_w, card_h), Card::club_decals[i], { 0,0 }, (olc::vf2d)Card::club_sprites[i]->Size());
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, 0), olc::vf2d(card_w, card_h), Card::red_back_decal, { 0,0 }, (olc::vf2d)Card::red_back_sprite->Size());
 		}
 
 		return true;
