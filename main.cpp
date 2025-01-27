@@ -2,6 +2,8 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 #include <string>
+#include <random>
+#include <time.h>
 using namespace std;
 
 class Card {
@@ -72,6 +74,7 @@ class Window : public olc::PixelGameEngine
 	int used_bot = 0;
 	int used_player = 0;
 	int winners[13];
+	int table[13];
 
 	olc::Sprite* tie_s;
 	olc::Decal* tie_d;
@@ -101,6 +104,12 @@ public:
 		load_asset(tie_s, tie_d, "./assets/tie.png");
 		load_asset(diamond_win_s, diamond_win_d, "./assets/diamond_win.png");
 		load_asset(heart_win_s, heart_win_d, "./assets/heart_win.png");
+
+		for (int i = 0; i < 13; i++) {
+			table[i] = i;
+		}
+
+		shuffle(table, table + 13, default_random_engine(time(0)));
 
 		return true;
 	}
@@ -149,7 +158,7 @@ public:
 				break;
 			}
 			case PLAYER_A: {
-				Conclusion second_duel = evaluate(player_picks[round], round);
+				Conclusion second_duel = evaluate(player_picks[round], table[round]);
 				if (second_duel == PLAYER_A)
 					winners[round] = PLAYER_A;
 				else
@@ -157,7 +166,7 @@ public:
 				break;
 			}
 			case PLAYER_B: {
-				Conclusion second_duel = evaluate(bot_picks[round], round);
+				Conclusion second_duel = evaluate(bot_picks[round], table[round]);
 				if (second_duel == PLAYER_A)
 					winners[round] = PLAYER_B;
 				else
@@ -213,7 +222,7 @@ public:
 			
 
 			// Table cards
-			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight()/2 - card_h/2), olc::vf2d(card_w, card_h), Card::club_decals[i], { 0,0 }, (olc::vf2d)Card::club_sprites[i]->Size());
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight()/2 - card_h/2), olc::vf2d(card_w, card_h), Card::club_decals[table[i]], { 0,0 }, (olc::vf2d)Card::club_sprites[table[i]]->Size());
 
 			// Bot cards
 			if (!(used_bot & (1 << i)))
