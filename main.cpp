@@ -7,7 +7,23 @@ using namespace std;
 class Card {
 public:
 	int suit;
-	int number;
+	int rank;
+
+	static void initialize_assets() {
+		for (int i = 0; i < 13; i++) {
+			string filename = "./assets/poker_cards_2_" + to_string(i) + ".png";
+			Card::heart_sprites[i] = new olc::Sprite(filename);
+			Card::heart_decals[i] = new olc::Decal(Card::heart_sprites[i]);
+
+			filename = "./assets/poker_cards_0_" + to_string(i) + ".png";
+			Card::club_sprites[i] = new olc::Sprite(filename);
+			Card::club_decals[i] = new olc::Decal(Card::club_sprites[i]);
+
+			filename = "./assets/poker_cards_1_" + to_string(i) + ".png";
+			Card::diamond_sprites[i] = new olc::Sprite(filename);
+			Card::diamond_decals[i] = new olc::Decal(Card::diamond_sprites[i]);
+		}
+	}
 
 	static olc::Sprite* heart_sprites[13];
 	static olc::Decal* heart_decals[13];
@@ -41,19 +57,7 @@ public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
-		for (int i = 0; i < 13; i++) {
-			string filename = "./assets/poker_cards_2_" + to_string(i) + ".png";
-			Card::heart_sprites[i] = new olc::Sprite(filename);
-			Card::heart_decals[i] = new olc::Decal(Card::heart_sprites[i]);
-
-			filename = "./assets/poker_cards_0_" + to_string(i) + ".png";
-			Card::club_sprites[i] = new olc::Sprite(filename);
-			Card::club_decals[i] = new olc::Decal(Card::club_sprites[i]);
-
-			filename = "./assets/poker_cards_1_" + to_string(i) + ".png";
-			Card::diamond_sprites[i] = new olc::Sprite(filename);
-			Card::diamond_decals[i] = new olc::Decal(Card::diamond_sprites[i]);
-		}
+		Card::initialize_assets();
 
 		return true;
 	}
