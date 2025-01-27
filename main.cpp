@@ -60,6 +60,11 @@ olc::Decal* Card::black_back_decal = 0;
 class Window : public olc::PixelGameEngine
 {
 	float select_yoffsets[13] = { 0 };
+	int player_picks[13];
+	int bot_picks[13];
+	int round = 0;
+	int used_bot = 0;
+	int used_player = 0;
 
 public:
 	Window()
@@ -102,11 +107,32 @@ public:
 			select_yoffsets[j] = max(0.0f, select_yoffsets[j]);
 		}
 
+		if (GetMouse(0).bPressed && hover && !(used_player & 1<<i)) {
+			player_picks[round] = i;
+			used_player |= 1 << i;
+			bot_picks[round] = round;
+			used_bot |= 1 << round;
+			round++;
+		}
+
 		for (int i = 0; i < 13; i++) {
-			/*DrawPartialSprite({ card_w * i, ScreenHeight() - card_h }, Card::heart_sprites[i], { 0,0 }, Card::heart_sprites[i]->Size(), scale);*/
-			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::diamond_decals[i], { 0,0 }, (olc::vf2d)Card::diamond_sprites[i]->Size());
+			
+			// Player cards
+			if (!(used_player & (1<<i)))
+				DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::diamond_decals[i], { 0,0 }, (olc::vf2d)Card::diamond_sprites[i]->Size());
+			
+
+			// Table cards
 			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight()/2 - card_h/2), olc::vf2d(card_w, card_h), Card::club_decals[i], { 0,0 }, (olc::vf2d)Card::club_sprites[i]->Size());
-			DrawPartialDecal(olc::vf2d((card_w + gap) * i, 0), olc::vf2d(card_w, card_h), Card::red_back_decal, { 0,0 }, (olc::vf2d)Card::red_back_sprite->Size());
+
+			// Bot cards
+			if (!(used_bot & (1 << i)))
+				DrawPartialDecal(olc::vf2d((card_w + gap) * i, 0), olc::vf2d(card_w, card_h), Card::red_back_decal, { 0,0 }, (olc::vf2d)Card::red_back_sprite->Size());
+		}
+
+		for (int i = 0; i < round; i++) {
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() / 2 + card_h / 2), olc::vf2d(card_w, card_h), Card::diamond_decals[player_picks[i]], { 0,0 }, (olc::vf2d)Card::diamond_sprites[player_picks[i]]->Size());
+			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() / 2 - card_h*1.5f), olc::vf2d(card_w, card_h), Card::heart_decals[bot_picks[i]], { 0,0 }, (olc::vf2d)Card::heart_sprites[bot_picks[i]]->Size());
 		}
 
 		return true;
