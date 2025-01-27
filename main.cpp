@@ -261,18 +261,29 @@ public:
 			}
 		}
 
-		//if (round >= 13) {
-		//	const string endings[3] = { "Tie!", "YOU WIN!", "YOU LOSE!" };
+		if (round >= 13) {
+			const string endings[3] = { "Tie!", "YOU WIN!", "YOU LOSE!" };
 
-		//	int sum = 0;
-		//	for (int i = 0; i < 13; i++) {
-		//		if (winners[i] == PLAYER_A) {
+			int sum = 0;
+			for (int i = 0; i < 13; i++) {
+				if (winners[i] == PLAYER) {
+					sum += table[i] == 0 ? 13 : table[i];
+				}
+				else if (winners[i] == BOT) {
+					sum -= table[i] == 0 ? 13 : table[i];
+				}
+			}
 
-		//		}
-		//	}
+			RoundWinner winner = NONE;
+			if (sum > 0) {
+				winner = PLAYER;
+			}
+			else if (sum < 0) {
+				winner = BOT;
+			}
 
-		//	DrawStringDecal(olc::vf2d(0, ScreenHeight()-30), endings[], )
-		//}
+			DrawStringDecal(olc::vf2d(40, ScreenHeight() - 80), endings[winner], olc::WHITE, olc::vf2d(5,5));
+		}
 
 		return true;
 	}
