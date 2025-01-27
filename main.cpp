@@ -67,13 +67,19 @@ class Window : public olc::PixelGameEngine
 		PLAYER_B
 	};
 
+	enum RoundWinner {
+		NONE,
+		PLAYER,
+		BOT,
+	};
+
 	float select_yoffsets[13] = { 0 };
 	int player_picks[13];
 	int bot_picks[13];
 	int round = 0;
 	int used_bot = 0;
 	int used_player = 0;
-	int winners[13];
+	RoundWinner winners[13];
 	int table[13];
 
 	olc::Sprite* tie_s;
@@ -150,27 +156,27 @@ public:
 		}
 	}
 
-	void evaluate_round() {
+	RoundWinner evaluate_round() {
 		Conclusion first_duel = evaluate(player_picks[round], bot_picks[round]);
 		switch (first_duel) {
 			case TIE: {
-				winners[round] = TIE;
+				return NONE;
 				break;
 			}
 			case PLAYER_A: {
 				Conclusion second_duel = evaluate(player_picks[round], table[round]);
 				if (second_duel == PLAYER_A)
-					winners[round] = PLAYER_A;
+					return PLAYER;
 				else
-					winners[round] = TIE;
+					return NONE;
 				break;
 			}
 			case PLAYER_B: {
 				Conclusion second_duel = evaluate(bot_picks[round], table[round]);
 				if (second_duel == PLAYER_A)
-					winners[round] = PLAYER_B;
+					return BOT;
 				else
-					winners[round] = TIE;
+					return NONE;
 				break;
 			}
 		}
@@ -209,7 +215,7 @@ public:
 			bot_picks[round] = bot_pick;
 			used_bot |= 1 << bot_pick;
 
-			evaluate_round();
+			winners[round] = evaluate_round();
 
 			round++;
 		}
@@ -243,17 +249,30 @@ public:
 
 			//cout << "WINNER " << winners[i] << '\n';
 			switch (winners[i]) {
-			case TIE:
+			case NONE:
 				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - tie_w / 2, ScreenHeight() / 2 - tie_h / 2), olc::vf2d(tie_w, tie_h), tie_d, { 0,0 }, tie_s->Size());
 				break;
-			case PLAYER_A:
+			case PLAYER:
 				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - diamond_w / 2, ScreenHeight() / 2 - diamond_h / 2), olc::vf2d(diamond_w, diamond_h), diamond_win_d, { 0,0 }, diamond_win_s->Size());
 				break;
-			case PLAYER_B:
+			case BOT:
 				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - heart_w / 2, ScreenHeight() / 2 - heart_h / 2), olc::vf2d(heart_w, heart_h), heart_win_d, { 0,0 }, heart_win_s->Size());
 				break;
 			}
 		}
+
+		//if (round >= 13) {
+		//	const string endings[3] = { "Tie!", "YOU WIN!", "YOU LOSE!" };
+
+		//	int sum = 0;
+		//	for (int i = 0; i < 13; i++) {
+		//		if (winners[i] == PLAYER_A) {
+
+		//		}
+		//	}
+
+		//	DrawStringDecal(olc::vf2d(0, ScreenHeight()-30), endings[], )
+		//}
 
 		return true;
 	}
