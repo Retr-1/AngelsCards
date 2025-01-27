@@ -59,12 +59,32 @@ olc::Decal* Card::black_back_decal = 0;
 // Override base class with your custom functionality
 class Window : public olc::PixelGameEngine
 {
+	enum Conclusion {
+		TIE,
+		PLAYER_A,
+		PLAYER_B
+	};
+
 	float select_yoffsets[13] = { 0 };
 	int player_picks[13];
 	int bot_picks[13];
 	int round = 0;
 	int used_bot = 0;
 	int used_player = 0;
+	int winners[13];
+
+	olc::Sprite* tie_s;
+	olc::Decal* tie_d;
+	olc::Sprite* diamond_win_s;
+	olc::Decal* diamond_win_d;
+	olc::Sprite* heart_win_s;
+	olc::Decal* heart_win_d;
+
+	void load_asset(olc::Sprite*& s, olc::Decal*& d, const string& filepath) {
+		s = new olc::Sprite(filepath);
+		d = new olc::Decal(s);
+	}
+
 
 public:
 	Window()
@@ -78,8 +98,73 @@ public:
 	{
 		// Called once at the start, so create things here
 		Card::initialize_assets();
+		load_asset(tie_s, tie_d, "./assets/tie.png");
+		load_asset(diamond_win_s, diamond_win_d, "./assets/diamond_win.png");
+		load_asset(heart_win_s, heart_win_d, "./assets/heart_win.png");
 
 		return true;
+	}
+
+	int get_bot_pick() {
+		return (round+1)%13;
+	}
+
+	Conclusion evaluate(int a, int b) {
+		if (b == 0) {
+			if (a == 0) {
+				return TIE;
+			}
+			else if (a < 10) {
+				return PLAYER_A;
+			}
+			else {
+				return PLAYER_B;
+			}
+		}
+		else {
+			if (a == 0) {
+				if (b < 10) {
+					return PLAYER_B;
+				}
+				else {
+					return PLAYER_A;
+				}
+			}
+			else {
+				if (a == b) {
+					return TIE;
+				}
+				else {
+					return a < b ? PLAYER_B : PLAYER_A;
+				}
+			}
+		}
+	}
+
+	void evaluate_round() {
+		Conclusion first_duel = evaluate(player_picks[round], bot_picks[round]);
+		switch (first_duel) {
+			case TIE: {
+				winners[round] = TIE;
+				break;
+			}
+			case PLAYER_A: {
+				Conclusion second_duel = evaluate(player_picks[round], round);
+				if (second_duel == PLAYER_A)
+					winners[round] = PLAYER_A;
+				else
+					winners[round] = TIE;
+				break;
+			}
+			case PLAYER_B: {
+				Conclusion second_duel = evaluate(bot_picks[round], round);
+				if (second_duel == PLAYER_A)
+					winners[round] = PLAYER_B;
+				else
+					winners[round] = TIE;
+				break;
+			}
+		}
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
@@ -110,8 +195,13 @@ public:
 		if (GetMouse(0).bPressed && hover && !(used_player & 1<<i)) {
 			player_picks[round] = i;
 			used_player |= 1 << i;
-			bot_picks[round] = round;
-			used_bot |= 1 << round;
+
+			int bot_pick = get_bot_pick();
+			bot_picks[round] = bot_pick;
+			used_bot |= 1 << bot_pick;
+
+			evaluate_round();
+
 			round++;
 		}
 
@@ -130,9 +220,30 @@ public:
 				DrawPartialDecal(olc::vf2d((card_w + gap) * i, 0), olc::vf2d(card_w, card_h), Card::red_back_decal, { 0,0 }, (olc::vf2d)Card::red_back_sprite->Size());
 		}
 
+		
+		float heart_w = card_w - 10;
+		float heart_h = heart_w * heart_win_s->height / heart_win_s->width;
+		float diamond_w = heart_w;
+		float diamond_h = diamond_w * diamond_win_s->height / diamond_win_s->width;
+		float tie_w = card_w / 4;
+		float tie_h =  tie_w * tie_s->height / tie_s->width;
+
 		for (int i = 0; i < round; i++) {
 			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() / 2 + card_h / 2), olc::vf2d(card_w, card_h), Card::diamond_decals[player_picks[i]], { 0,0 }, (olc::vf2d)Card::diamond_sprites[player_picks[i]]->Size());
 			DrawPartialDecal(olc::vf2d((card_w + gap) * i, ScreenHeight() / 2 - card_h*1.5f), olc::vf2d(card_w, card_h), Card::heart_decals[bot_picks[i]], { 0,0 }, (olc::vf2d)Card::heart_sprites[bot_picks[i]]->Size());
+
+			//cout << "WINNER " << winners[i] << '\n';
+			switch (winners[i]) {
+			case TIE:
+				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - tie_w / 2, ScreenHeight() / 2 - tie_h / 2), olc::vf2d(tie_w, tie_h), tie_d, { 0,0 }, tie_s->Size());
+				break;
+			case PLAYER_A:
+				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - diamond_w / 2, ScreenHeight() / 2 - diamond_h / 2), olc::vf2d(diamond_w, diamond_h), diamond_win_d, { 0,0 }, diamond_win_s->Size());
+				break;
+			case PLAYER_B:
+				DrawPartialDecal(olc::vf2d((card_w + gap) * i + card_w / 2 - heart_w / 2, ScreenHeight() / 2 - heart_h / 2), olc::vf2d(heart_w, heart_h), heart_win_d, { 0,0 }, heart_win_s->Size());
+				break;
+			}
 		}
 
 		return true;
@@ -144,5 +255,6 @@ int main()
 	Window win;
 	if (win.Construct(800, 800, 1, 1))
 		win.Start();
+
 	return 0;
 }
