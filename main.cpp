@@ -11,14 +11,19 @@ public:
 
 	static olc::Sprite* heart_sprites[13];
 	static olc::Decal* heart_decals[13];
-	static olc::Sprite* spade_sprites[13];
-	static olc::Decal* spade_decals[13];
+	static olc::Sprite* club_sprites[13];
+	static olc::Decal* club_decals[13];
+	static olc::Sprite* diamond_sprites[13];
+	static olc::Decal* diamond_decals[13];
 };
 
 olc::Sprite* Card::heart_sprites[13] = {};
-olc::Sprite* Card::spade_sprites[13] = {};
 olc::Decal* Card::heart_decals[13] = {};
-olc::Decal* Card::spade_decals[13] = {};
+olc::Sprite* Card::club_sprites[13] = {};
+olc::Decal* Card::club_decals[13] = {};
+olc::Sprite* Card::diamond_sprites[13] = {};
+olc::Decal* Card::diamond_decals[13] = {};
+
 
 // Override base class with your custom functionality
 class Window : public olc::PixelGameEngine
@@ -41,9 +46,13 @@ public:
 			Card::heart_sprites[i] = new olc::Sprite(filename);
 			Card::heart_decals[i] = new olc::Decal(Card::heart_sprites[i]);
 
+			filename = "./assets/poker_cards_0_" + to_string(i) + ".png";
+			Card::club_sprites[i] = new olc::Sprite(filename);
+			Card::club_decals[i] = new olc::Decal(Card::club_sprites[i]);
+
 			filename = "./assets/poker_cards_1_" + to_string(i) + ".png";
-			Card::spade_sprites[i] = new olc::Sprite(filename);
-			Card::spade_decals[i] = new olc::Decal(Card::spade_sprites[i]);
+			Card::diamond_sprites[i] = new olc::Sprite(filename);
+			Card::diamond_decals[i] = new olc::Decal(Card::diamond_sprites[i]);
 		}
 
 		return true;
@@ -76,7 +85,7 @@ public:
 
 		for (int i = 0; i < 13; i++) {
 			/*DrawPartialSprite({ card_w * i, ScreenHeight() - card_h }, Card::heart_sprites[i], { 0,0 }, Card::heart_sprites[i]->Size(), scale);*/
-			DrawPartialDecal(olc::vf2d((card_w+gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::heart_decals[i], {0,0}, (olc::vf2d)Card::heart_sprites[i]->Size());
+			DrawPartialDecal(olc::vf2d((card_w+gap) * i, ScreenHeight() - card_h - select_yoffsets[i]), olc::vf2d(card_w, card_h), Card::diamond_decals[i], {0,0}, (olc::vf2d)Card::diamond_sprites[i]->Size());
 		}
 
 		return true;
