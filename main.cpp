@@ -121,7 +121,8 @@ public:
 	}
 
 	int get_bot_pick() {
-		return (round+1)%13;
+		int arr[13] = { 9,2,3,4,5,6,7,8,1,10,11,12,0 };
+		return arr[table[round]];
 	}
 
 	Conclusion evaluate(int a, int b) {
