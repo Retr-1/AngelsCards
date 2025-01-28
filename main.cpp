@@ -127,6 +127,8 @@ public:
 		int s = 13 - round;
 		int* bot_perm = new int[s];
 		int* player_perm = new int[s];
+		int wins[13] = { 0 };
+		int losses[13] = { 0 };
 
 		int j = 0;
 		int g = 0;
@@ -140,16 +142,46 @@ public:
 		for (int i = 0; i < 100000; i++) {
 			shuffle(player_perm, player_perm + s, rng);
 			shuffle(bot_perm, bot_perm + s, rng);
-
-
+			int sum = cumsum;
+			for (int j = 0; j < s; j++) {
+				RoundWinner w = evaluate_round(player_perm[j], bot_perm[j], table[j + round]);
+				if (w == PLAYER) {
+					sum += table[j + round] == 0 ? 13 : table[j + round];
+				}
+				else if (w == BOT) {
+					sum -= table[j + round] == 0 ? 13 : table[j + round];
+				}
+			}
+			if (sum < 0) {
+				wins[bot_perm[0]]++;
+			}
+			else if (sum > 0) {
+				losses[bot_perm[0]]++;
+			}
 		}
-
 
 		delete[] bot_perm;
 		delete[] player_perm;
+
+		float best_ratio = -1;
+		int best_card = 0;
+
+		for (int i = 0; i < 13; i++) {
+			if (1 << i & used_bot)
+				continue;
+			if (losses[i] == 0)
+				return i;
+			float ratio = wins[i] / (float)losses[i];
+			if (best_ratio < ratio) {
+				best_ratio = ratio;
+				best_card = i;
+			}
+		}
+		cout << best_ratio << '\n';
+		return best_card;
 	}
 
-	Conclusion evaluate(int a, int b) {
+	Conclusion duel(int a, int b) {
 		if (b == 0) {
 			if (a == 0) {
 				return TIE;
@@ -181,15 +213,15 @@ public:
 		}
 	}
 
-	RoundWinner evaluate_round() {
-		Conclusion first_duel = evaluate(player_picks[round], bot_picks[round]);
+	RoundWinner evaluate_round(int player_card, int bot_card, int table_card) {
+		Conclusion first_duel = duel(player_card, bot_card);
 		switch (first_duel) {
 			case TIE: {
 				return NONE;
 				break;
 			}
 			case PLAYER_A: {
-				Conclusion second_duel = evaluate(player_picks[round], table[round]);
+				Conclusion second_duel = duel(player_card, table_card);
 				if (second_duel == PLAYER_A)
 					return PLAYER;
 				else
@@ -197,7 +229,7 @@ public:
 				break;
 			}
 			case PLAYER_B: {
-				Conclusion second_duel = evaluate(bot_picks[round], table[round]);
+				Conclusion second_duel = duel(bot_card, table_card);
 				if (second_duel == PLAYER_A)
 					return BOT;
 				else
@@ -240,7 +272,7 @@ public:
 			bot_picks[round] = bot_pick;
 			used_bot |= 1 << bot_pick;
 
-			winners[round] = evaluate_round();
+			winners[round] = evaluate_round(player_picks[round], bot_picks[round], table[round]);
 
 			if (winners[round] == RoundWinner::PLAYER) {
 				cumsum += table[round] == 0 ? 13 : table[round];
