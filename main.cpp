@@ -122,8 +122,31 @@ public:
 	}
 
 	int get_bot_pick() {
-		int arr[13] = { 9,2,3,4,5,6,7,8,1,10,11,12,0 };
-		return arr[table[round]];
+		auto rng = default_random_engine(time(0));
+
+		int s = 13 - round;
+		int* bot_perm = new int[s];
+		int* player_perm = new int[s];
+
+		int j = 0;
+		int g = 0;
+		for (int i = 0; i < 13; i++) {
+			if (!(1 << i & used_player))
+				player_perm[j++] = i;
+			if (!(1 << i & used_bot))
+				bot_perm[g++] = i;
+		}
+
+		for (int i = 0; i < 100000; i++) {
+			shuffle(player_perm, player_perm + s, rng);
+			shuffle(bot_perm, bot_perm + s, rng);
+
+
+		}
+
+
+		delete[] bot_perm;
+		delete[] player_perm;
 	}
 
 	Conclusion evaluate(int a, int b) {
@@ -293,6 +316,11 @@ int main()
 	Window win;
 	if (win.Construct(800, 800, 1, 1))
 		win.Start();
+	//int a[5] = { 1,2,3,4,5 };
+	//int i = 2;
+
+	//a[i++] = -69;
+	//cout << i << ' ' << a[i - 1] << ' ' << a[i];
 
 	return 0;
 }
